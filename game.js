@@ -25,42 +25,67 @@ $("create-form").addEventListener("submit",e=>{e.preventDefault();updatePreview(
 
 class TopDownCampus{
  constructor(canvas,p){
-  this.canvas=canvas;this.ctx=canvas.getContext("2d");this.profile=p;this.tileW=48;this.tileH=48;this.mapW=54;this.mapH=48;
-  this.player={x:26,y:24,walk:0,energy:100};this.camera={x:0,y:0};this.keys={};this.joy={x:0,y:0};this.running=false;
+  this.canvas=canvas;this.ctx=canvas.getContext("2d");this.profile=p;this.tileW=42;this.tileH=42;this.mapW=88;this.mapH=82;
+  this.player={x:42,y:73,walk:0,energy:100};this.camera={x:0,y:0};this.keys={};this.joy={x:0,y:0};this.running=false;
   this.last=performance.now();this.elapsed=0;this.dayMinutes=8*60;this.near=null;this.mode="campus";this.currentBuilding=null;this.npcs=[];this.toastTimer=null;
   this.buildWorld();this.installPhase2UI();this.bindControls();this.resize();window.addEventListener("resize",()=>this.resize());
   this.loop=this.loop.bind(this);requestAnimationFrame(this.loop);
  }
  buildWorld(){
+  // 校园正俯视布局：建筑名称与功能来自用户此前提供的校园资料。
   this.buildings=[
-   {x:6,y:6,w:8,h:6,name:"教学楼",kind:"class",color:"#e5c99d",roof:"#b86f58",room:"教室",desc:"教学楼是校园日常学习的核心区域。"},
-   {x:23,y:5,w:8,h:6,name:"图书馆",kind:"library",color:"#e1d2a9",roof:"#82998d",room:"阅览室",desc:"安静的阅览室里摆满了书籍。"},
-   {x:39,y:8,w:7,h:6,name:"实验楼",kind:"lab",color:"#c8d8d0",roof:"#688e88",room:"实验室",desc:"这里开展科学实验与社团活动。"},
-   {x:5,y:31,w:8,h:6,name:"学生食堂",kind:"food",color:"#edc1a5",roof:"#c77e60",room:"食堂大厅",desc:"可以在这里补充精力。"},
-   {x:23,y:34,w:9,h:7,name:"宿舍区",kind:"dorm",color:"#d4c1e2",roof:"#8c77a5",room:"宿舍",desc:"回到宿舍休息，恢复精力。"},
-   {x:40,y:31,w:7,h:6,name:"行政楼",kind:"office",color:"#cbd8c8",roof:"#7c9587",room:"办公室",desc:"校园事务与公告发布地点。"}
+   {x:7,y:8,w:12,h:9,name:"文渊馆",kind:"library",color:"#e8d8b8",roof:"#8d9f83",room:"图书阅览室",desc:"图书馆 · 藏书阅览、自习学习"},
+   {x:29,y:8,w:10,h:8,name:"行知楼 A",kind:"class",color:"#e5d0aa",roof:"#b87961",room:"高一教学楼",desc:"高一教学区 · 普通教室"},
+   {x:43,y:8,w:10,h:8,name:"行知楼 B",kind:"class",color:"#e5d0aa",roof:"#bd8068",room:"高一教学楼",desc:"高一教学区 · 普通教室"},
+   {x:65,y:8,w:12,h:9,name:"格物楼",kind:"lab",color:"#cbded8",roof:"#648f88",room:"实验教学区",desc:"实验楼 · 科学实验与实践活动"},
+   {x:7,y:24,w:12,h:8,name:"杏坛报告厅",kind:"auditorium",color:"#e6d5c8",roof:"#986c70",room:"报告厅",desc:"报告厅 · 集会、讲座与校园活动"},
+   {x:29,y:21,w:10,h:8,name:"省身楼 A",kind:"class",color:"#e5d0aa",roof:"#b87961",room:"高二教学楼",desc:"高二教学区 · 普通教室"},
+   {x:43,y:21,w:10,h:8,name:"省身楼 B",kind:"class",color:"#e5d0aa",roof:"#bd8068",room:"高二教学楼",desc:"高二教学区 · 普通教室"},
+   {x:65,y:24,w:12,h:8,name:"树人楼",kind:"office",color:"#d4dfd0",roof:"#779384",room:"政教处",desc:"政教处 · 学生事务与校园管理"},
+   {x:7,y:39,w:10,h:7,name:"求实楼",kind:"bath",color:"#d2e3e3",roof:"#6e9da0",room:"澡堂",desc:"澡堂 · 洗浴与生活服务"},
+   {x:29,y:34,w:10,h:8,name:"海粟楼 A",kind:"class",color:"#e5d0aa",roof:"#b87961",room:"高三教学楼",desc:"高三教学区 · 普通教室"},
+   {x:43,y:34,w:10,h:8,name:"海粟楼 B",kind:"class",color:"#e5d0aa",roof:"#bd8068",room:"高三教学楼",desc:"高三教学区 · 普通教室"},
+   {x:65,y:39,w:12,h:8,name:"思源餐厅",kind:"food",color:"#edc7a9",roof:"#c6815f",room:"学生餐厅",desc:"学生餐厅 · 就餐与补充精力"},
+   {x:7,y:52,w:12,h:8,name:"弘远楼",kind:"dorm",color:"#d9cbe4",roof:"#8c78a3",room:"宿舍生活区",desc:"宿舍区 · 学生住宿与生活"},
+   {x:29,y:48,w:10,h:8,name:"弘毅楼 A",kind:"dorm",color:"#d9cbe4",roof:"#8c78a3",room:"男生宿舍",desc:"男生宿舍 · 学生住宿"},
+   {x:43,y:48,w:10,h:8,name:"弘毅楼 B",kind:"dorm",color:"#d9cbe4",roof:"#927ea9",room:"男生宿舍",desc:"男生宿舍 · 学生住宿"},
+   {x:57,y:52,w:10,h:8,name:"弘德楼 A",kind:"dorm",color:"#e3d1e6",roof:"#a184ad",room:"女生宿舍",desc:"女生宿舍 · 学生住宿"},
+   {x:70,y:52,w:10,h:8,name:"弘德楼 B",kind:"dorm",color:"#e3d1e6",roof:"#a184ad",room:"女生宿舍",desc:"女生宿舍 · 学生住宿"},
+   {x:55,y:66,w:15,h:8,name:"艺体中心",kind:"arts",color:"#d3dedb",roof:"#668b8d",room:"体育与艺术活动区",desc:"艺体中心 · 体育训练与艺术活动"}
   ];
   this.areas=[
-   {x:16,y:15,w:20,h:17,name:"操场",kind:"field"},
-   {x:3,y:17,w:7,h:7,name:"樱花花园",kind:"garden"},
-   {x:43,y:17,w:7,h:8,name:"林荫步道",kind:"trees"},
-   {x:17,y:4,w:4,h:5,name:"中央喷泉",kind:"fountain"}
+   {x:23,y:15,w:38,h:4,name:"教学区主路",kind:"road"},
+   {x:22,y:30,w:40,h:4,name:"校园中轴道路",kind:"road"},
+   {x:21,y:44,w:41,h:3,name:"生活区道路",kind:"road"},
+   {x:22,y:22,w:39,h:7,name:"青春广场",kind:"plaza"},
+   {x:22,y:36,w:39,h:7,name:"中央活动广场",kind:"plaza"},
+   {x:21,y:62,w:33,h:10,name:"操场",kind:"field"},
+   {x:38,y:69,w:10,h:3,name:"操场看台",kind:"stands"},
+   {x:33,y:4,w:18,h:3,name:"校园林荫道",kind:"trees"},
+   {x:37,y:75,w:10,h:3,name:"校园大门",kind:"gate"},
+   {x:19,y:68,w:2,h:5,name:"电话亭西排",kind:"booths"},
+   {x:62,y:68,w:2,h:5,name:"电话亭东排",kind:"booths"}
   ];
   this.npcs=[
-   {x:18,y:24,name:"值日生小林",role:"student",text:"今天的校园很热闹！听说图书馆新到了一批书。",homeX:18,homeY:24,phase:0},
-   {x:34,y:22,name:"校园向导",role:"guide",text:"教学楼、图书馆、食堂和宿舍都可以进入。靠近入口后按 E 互动。",homeX:34,homeY:22,phase:1},
-   {x:15,y:29,name:"体育委员",role:"student",text:"天气不错！有空来操场跑两圈吧。",homeX:15,homeY:29,phase:2},
-   {x:35,y:30,name:"巡逻老师",role:"teacher",text:"记得合理安排学习和休息时间。",homeX:35,homeY:30,phase:3}
+   {x:25,y:25,name:"校园向导",role:"guide",text:"欢迎来到峰峰一中！你可以探索教学区、生活区和操场。",homeX:25,homeY:25,phase:0},
+   {x:58,y:25,name:"值日生小林",role:"student",text:"文渊馆适合安静自习，格物楼里有实验室。",homeX:58,homeY:25,phase:1},
+   {x:25,y:46,name:"体育委员",role:"student",text:"操场就在校园南侧，欢迎来运动！",homeX:25,homeY:46,phase:2},
+   {x:58,y:46,name:"巡逻老师",role:"teacher",text:"合理安排学习和休息，保持校园整洁。",homeX:58,homeY:46,phase:3}
   ];
   this.blockers=[];this.rebuildBlockers();
-  this.tasks=[{title:"熟悉新校园",desc:"走进校园，拜访一位校园角色。",done:false},{title:"探索校园建筑",desc:"进入任意一栋校园建筑。",done:false},{title:"校园生活体验",desc:"在食堂用餐或在宿舍休息一次。",done:false}];
+  this.tasks=[
+   {title:"熟悉新校园",desc:"找到校园向导并与其交谈。",done:false},
+   {title:"探索教学区",desc:"进入一栋教学楼或实验楼。",done:false},
+   {title:"校园生活体验",desc:"前往思源餐厅用餐或回宿舍休息。",done:false},
+   {title:"操场打卡",desc:"前往操场中央，完成一次校园探索。",done:false}
+  ];
   this.visited=new Set();
  }
  rebuildBlockers(){
   this.blockers=[];
   if(this.mode==="campus"){
    this.buildings.forEach(b=>this.blockers.push({x:b.x,y:b.y,w:b.w,h:b.h}));
-   this.areas.filter(a=>a.kind==="garden"||a.kind==="trees"||a.kind==="fountain").forEach(a=>this.blockers.push({x:a.x,y:a.y,w:a.w,h:a.h}));
+   this.areas.filter(a=>a.kind==="trees"||a.kind==="stands"||a.kind==="booths").forEach(a=>this.blockers.push({x:a.x,y:a.y,w:a.w,h:a.h}));
   }else{
    this.blockers=[{x:0,y:0,w:18,h:1},{x:0,y:0,w:1,h:14},{x:17,y:0,w:1,h:14},{x:0,y:13,w:7,h:1},{x:11,y:13,w:7,h:1}];
   }
@@ -69,7 +94,7 @@ class TopDownCampus{
   const tag=document.querySelector(".build-tag");if(tag)tag.textContent="PHASE 02 · CAMPUS EXPANSION";
   const mapText=document.querySelector(".modal p");if(mapText)mapText.textContent="校园地图已扩建。靠近建筑入口按 E 进入室内，按 ESC 返回校园。";
   const mini=$("mini-map");if(mini){mini.innerHTML="";mini.style.background="#8eae83";mini.style.display="grid";mini.style.gridTemplateColumns="repeat(3,1fr)";mini.style.gap="5px";mini.style.padding="8px";
-   [["教学楼","#c99c76"],["图书馆","#b8b18a"],["实验楼","#8caeaa"],["食堂","#d49b7c"],["宿舍区","#b29bc8"],["行政楼","#9aaf9c"],["操场","#63966d"],["花园","#65946c"],["林荫步道","#477a5c"]].forEach(([n,col])=>{const d=document.createElement("div");d.textContent=n;d.style.cssText=`background:${col};border-radius:6px;display:grid;place-items:center;font-size:10px;color:#fff;min-height:34px`;mini.appendChild(d);});
+   [["文渊馆","#8d9f83"],["格物楼","#648f88"],["行知楼·高一","#b87961"],["省身楼·高二","#b87961"],["海粟楼·高三","#b87961"],["杏坛报告厅","#986c70"],["树人楼·政教处","#779384"],["思源餐厅","#c6815f"],["求实楼·澡堂","#6e9da0"],["弘远楼·宿舍","#8c78a3"],["弘毅楼·男宿","#8c78a3"],["弘德楼·女宿","#a184ad"],["艺体中心","#668b8d"],["操场","#b75f55"],["青春广场","#d6cfb8"],["校园大门","#596b60"]].forEach(([n,col])=>{const d=document.createElement("div");d.textContent=n;d.style.cssText=`background:${col};border-radius:6px;display:grid;place-items:center;font-size:10px;color:#fff;min-height:34px`;mini.appendChild(d);});
   }
   const hud=document.querySelector(".hud-left");if(hud&&!$("phase2-task")){const box=document.createElement("div");box.id="phase2-task";box.className="hud-panel";box.innerHTML='<small>校园日常</small><strong style="font-size:13px">新生探索任务</strong><div id="phase2-task-text" style="font-size:10px;color:#d4e2d8;margin-top:6px;line-height:1.5">熟悉新校园</div>';hud.appendChild(box);}
   const controls=document.querySelector(".action-buttons");if(controls&&!$("phase2-task-btn")){const b=document.createElement("button");b.id="phase2-task-btn";b.className="action-btn";b.textContent="任务";b.addEventListener("click",()=>this.showTasks());controls.insertBefore(b,controls.firstChild);}
@@ -100,13 +125,20 @@ class TopDownCampus{
   this.elapsed+=dt;this.dayMinutes=(8*60+Math.floor(this.elapsed*3))%(24*60);
   if(this.mode==="campus")this.npcs.forEach((n,i)=>{n.phase+=dt*.45;n.x=n.homeX+Math.sin(n.phase+i)*.65;n.y=n.homeY+Math.cos(n.phase*.8+i)*.5;});
   const pos=this.iso(this.player.x,this.player.y);this.camera.x=pos.x-this.viewW/2;this.camera.y=pos.y-this.viewH/2+30;
-  this.near=this.findNearby();$("energy-meter").style.width=this.player.energy+"%";$("energy-label").textContent=Math.round(this.player.energy);
+  this.near=this.findNearby();if(this.mode==="campus"&&this.player.y>63&&this.player.y<73&&this.player.x>22&&this.player.x<55)this.tasks[3].done=true;$("energy-meter").style.width=this.player.energy+"%";$("energy-label").textContent=Math.round(this.player.energy);
   $("clock-label").textContent=String(Math.floor(this.dayMinutes/60)).padStart(2,"0")+":"+String(this.dayMinutes%60).padStart(2,"0");
   $("location-label").textContent=this.mode==="interior"?this.currentBuilding.room:(this.near?this.near.name:this.areaName());
   $("hint-label").textContent=this.mode==="interior"?"室内探索 · E 与室内角色/设施互动 · ESC 返回校园":(this.near?`靠近了${this.near.name} · 按 E 或点击互动`:"WASD / 方向键移动，靠近建筑入口按 E 进入");
   this.updateTaskText();
  }
- areaName(){if(this.player.x<15&&this.player.y>27)return"食堂生活区";if(this.player.x>35&&this.player.y>27)return"宿舍生活区";if(this.player.y<14)return"教学活动区";if(this.player.x>35)return"实验活动区";return"中央校园";}
+ areaName(){
+  if(this.player.y>65)return"校园大门";
+  if(this.player.y>51&&this.player.y<64)return"操场";
+  if(this.player.y>36&&this.player.y<50)return"生活服务区";
+  if(this.player.y>20&&this.player.y<34)return"青春广场";
+  if(this.player.y<20)return"教学区";
+  return"校园中轴";
+ }
  findNearby(){
   if(this.mode==="interior"){const objs=this.roomObjects();let best=null,dist=1.8;objs.forEach(o=>{const d=Math.hypot(this.player.x-o.x,this.player.y-o.y);if(d<dist){dist=d;best=o;}});return best;}
   let best=null,dist=2.6;
@@ -157,11 +189,41 @@ class TopDownCampus{
  }
  drawCampus(){
   const c=this.ctx;
-  for(let sum=0;sum<this.mapW+this.mapH;sum++)for(let x=Math.max(0,sum-this.mapH+1);x<=Math.min(this.mapW-1,sum);x++){const y=sum-x,p=this.iso(x,y);this.drawDiamond(p.x,p.y,((x*7+y*11)%5===0)?"#91b58e":((x+y)%3===0?"#86aa84":"#8daf89"));if((x*13+y*7)%31===0){c.fillStyle="#d5d29a";c.fillRect(p.x-2,p.y-1,3,3);}}
-  for(let i=0;i<this.mapW;i++){let p=this.iso(27,i);this.drawDiamond(p.x,p.y,"#c2b99e");p=this.iso(i,25);this.drawDiamond(p.x,p.y,"#c2b99e");}
-  this.areas.forEach(a=>{for(let x=a.x;x<a.x+a.w;x++)for(let y=a.y;y<a.y+a.h;y++){const p=this.iso(x,y);let col=a.kind==="field"?"#6f9e76":a.kind==="fountain"?"#75b7bd":"#719b76";this.drawDiamond(p.x,p.y,col);}const p=this.iso(a.x+a.w/2,a.y+a.h/2);c.fillStyle="#f3f1dc";c.font="bold 15px sans-serif";c.textAlign="center";c.fillText(a.name,p.x,p.y);if(a.kind==="garden"||a.kind==="trees"){for(let i=0;i<5;i++){const t=this.iso(a.x+1+(i%3)*2,a.y+1+Math.floor(i/3)*3);this.drawTree(t.x,t.y);}}if(a.kind==="fountain"){c.fillStyle="#5db5c2";c.beginPath();c.arc(p.x,p.y-10,18,0,Math.PI*2);c.fill();}});
-  const items=[];this.buildings.forEach(b=>items.push({d:b.x+b.y+b.w+b.h,fn:()=>this.drawBuilding(b)}));this.npcs.forEach(n=>items.push({d:n.x+n.y,fn:()=>this.drawPerson(n.x,n.y,n.role==="teacher"?"#d5dbe4":"#d8c18c","#34445a",n.name,false)}));items.push({d:this.player.x+this.player.y,fn:()=>this.drawPerson(this.player.x,this.player.y,this.profile.uniform,this.profile.hair,this.profile.name,true)});items.sort((a,b)=>a.d-b.d).forEach(i=>i.fn());
+  c.fillStyle="#82a982";c.fillRect(0,0,this.mapW*this.tileW,this.mapH*this.tileH);
+  for(let y=0;y<this.mapH;y+=2)for(let x=0;x<this.mapW;x+=2){
+   c.fillStyle=((x*7+y*13)%9===0)?"#8eb58c":"#86ad87";
+   c.fillRect(x*this.tileW,y*this.tileH,this.tileW*2,this.tileH*2);
+  }
+  this.areas.filter(a=>["road","plaza"].includes(a.kind)).forEach(a=>{
+   c.fillStyle=a.kind==="road"?"#c9c1a9":"#d6cfb8";
+   c.fillRect(a.x*this.tileW,a.y*this.tileH,a.w*this.tileW,a.h*this.tileH);
+   c.strokeStyle="#eee8d5";c.lineWidth=3;c.strokeRect(a.x*this.tileW+3,a.y*this.tileH+3,a.w*this.tileW-6,a.h*this.tileH-6);
+   this.label(a.name,(a.x+a.w/2)*this.tileW,(a.y+a.h/2)*this.tileH,"#514e40",15);
+  });
+  const field=this.areas.find(a=>a.kind==="field");
+  if(field){
+   const x=field.x*this.tileW,y=field.y*this.tileH,w=field.w*this.tileW,h=field.h*this.tileH;
+   c.fillStyle="#b75f55";c.beginPath();c.roundRect(x,y,w,h,36);c.fill();
+   c.strokeStyle="#f3d9c3";c.lineWidth=4;c.stroke();
+   c.fillStyle="#6ca66f";c.fillRect(x+38,y+28,w-76,h-56);
+   c.strokeStyle="#e8f0d8";c.lineWidth=3;c.strokeRect(x+38,y+28,w-76,h-56);
+   c.beginPath();c.moveTo(x+w/2,y+28);c.lineTo(x+w/2,y+h-28);c.stroke();
+   c.beginPath();c.arc(x+w/2,y+h/2,46,0,Math.PI*2);c.stroke();
+   this.label("操场 · 足球场",x+w/2,y+20,"#fff",18);
+  }
+  const stands=this.areas.find(a=>a.kind==="stands");
+  if(stands){const x=stands.x*this.tileW,y=stands.y*this.tileH,w=stands.w*this.tileW,h=stands.h*this.tileH;c.fillStyle="#b7b0a2";c.fillRect(x,y,w,h);for(let i=0;i<4;i++){c.fillStyle=i%2?"#d9d3c6":"#a49c8d";c.fillRect(x,y+i*h/4,w,h/8);}}
+  const gate=this.areas.find(a=>a.kind==="gate");
+  if(gate){const x=gate.x*this.tileW,y=gate.y*this.tileH,w=gate.w*this.tileW;c.fillStyle="#d8d1bd";c.fillRect(x-55,y+18,w+110,18);c.fillStyle="#596b60";c.fillRect(x-45,y-18,18,65);c.fillRect(x+w+27,y-18,18,65);c.fillStyle="#e8dfc8";c.fillRect(x-27,y-14,w+54,15);this.label("峰峰一中",x+w/2,y-25,"#fff",18);}
+  this.areas.filter(a=>a.kind==="booths").forEach(a=>{for(let i=0;i<5;i++){const x=a.x*this.tileW,y=(a.y+i)*this.tileH;c.fillStyle="#d7e2d7";c.fillRect(x,y,2*this.tileW*.55,this.tileH*.75);c.fillStyle="#668b83";c.fillRect(x+5,y+5,this.tileW*.45,this.tileH*.55);}});
+  for(let i=0;i<34;i++){const x=(4+(i*17)%79)*this.tileW,y=(4+(i*23)%68)*this.tileH;if(this.buildings.some(b=>x>b.x*this.tileW-20&&x<(b.x+b.w)*this.tileW+20&&y>b.y*this.tileH-20&&y<(b.y+b.h)*this.tileH+20))continue;this.drawTree(x,y);}
+  const items=[];
+  this.buildings.forEach(b=>items.push({d:b.y+b.h,fn:()=>this.drawBuilding(b)}));
+  this.npcs.forEach(n=>items.push({d:n.y,fn:()=>this.drawPerson(n.x,n.y,n.role==="teacher"?"#d5dbe4":"#d8c18c","#34445a",n.name,false)}));
+  items.push({d:this.player.y,fn:()=>this.drawPerson(this.player.x,this.player.y,this.profile.uniform,this.profile.hair,this.profile.name,true)});
+  items.sort((a,b)=>a.d-b.d).forEach(i=>i.fn());
  }
+ label(text,x,y,color="#fff",size=14){const c=this.ctx;c.save();c.font=`800 ${size}px sans-serif`;c.textAlign="center";c.lineWidth=4;c.strokeStyle="#26382dcc";c.strokeText(text,x,y);c.fillStyle=color;c.fillText(text,x,y);c.restore();}
  drawInterior(){
   const c=this.ctx,w=18*this.tileW,h=14*this.tileH;
   c.fillStyle="#e9dfcc";c.fillRect(0,0,w,h);
@@ -183,21 +245,23 @@ class TopDownCampus{
   this.drawPerson(this.player.x,this.player.y,this.profile.uniform,this.profile.hair,this.profile.name,true);
  }
 
- drawTree(x,y){const c=this.ctx;c.fillStyle="#705b43";c.fillRect(x-3,y-4,6,18);c.fillStyle="#315f4b";c.beginPath();c.arc(x,y-15,15,0,Math.PI*2);c.fill();c.fillStyle="#4c8060";c.beginPath();c.arc(x-8,y-20,9,0,Math.PI*2);c.fill();}
+ drawTree(x,y){const c=this.ctx;c.fillStyle="#0003";c.beginPath();c.ellipse(x+3,y+8,17,8,0,0,Math.PI*2);c.fill();c.fillStyle="#315f4b";c.beginPath();c.arc(x,y,17,0,Math.PI*2);c.fill();c.fillStyle="#4c8060";c.beginPath();c.arc(x-7,y-6,10,0,Math.PI*2);c.fill();c.fillStyle="#79a96f";c.beginPath();c.arc(x+7,y-7,8,0,Math.PI*2);c.fill();}
  drawBuilding(b){
   const c=this.ctx,x=b.x*this.tileW,y=b.y*this.tileH,w=b.w*this.tileW,h=b.h*this.tileH;
-  // 建筑阴影、外墙、屋顶均为正俯视矩形构图
-  c.fillStyle="#26382d55";c.fillRect(x+8,y+10,w,h);
-  c.fillStyle="#d8d0bf";c.fillRect(x,y,w,h);
-  c.fillStyle=b.roof;c.fillRect(x+8,y+8,w-16,h-16);
-  c.strokeStyle="#665b4e";c.lineWidth=3;c.strokeRect(x+8,y+8,w-16,h-16);
-  c.fillStyle="#ffffff";c.font="bold 15px sans-serif";c.textAlign="center";c.shadowColor="#27352b";c.shadowBlur=4;
-  c.fillText(b.name,x+w/2,y+h/2-4);c.font="12px sans-serif";c.fillText(b.room||b.desc||"校园建筑",x+w/2,y+h/2+15);c.shadowBlur=0;
-  // 朝南入口
-  c.fillStyle="#654936";c.fillRect(x+w/2-13,y+h-11,26,18);c.fillStyle="#fff0c4";c.font="11px sans-serif";c.fillText("入口",x+w/2,y+h+22);
-  c.fillStyle="#a9c5c7";for(let i=0;i<Math.max(2,Math.floor(b.w/2));i++){c.fillRect(x+20+i* this.tileW*1.5,y+13,18,8);}
+  c.fillStyle="#26382d55";c.fillRect(x+9,y+12,w,h);
+  c.fillStyle=b.color||"#d8d0bf";c.fillRect(x,y,w,h);
+  c.fillStyle=b.roof;c.fillRect(x+9,y+9,w-18,h-18);
+  c.strokeStyle="#655b4e";c.lineWidth=4;c.strokeRect(x+9,y+9,w-18,h-18);
+  c.fillStyle="#ffffff24";c.fillRect(x+16,y+16,w-32,8);
+  const windows=Math.max(3,Math.floor(b.w/2));
+  for(let i=0;i<windows;i++){c.fillStyle="#b9d5d3";c.fillRect(x+20+i*((w-45)/windows),y+h-19,18,7);}
+  c.fillStyle="#fff";c.font="900 16px sans-serif";c.textAlign="center";c.shadowColor="#26352b";c.shadowBlur=5;
+  c.fillText(b.name,x+w/2,y+h/2-5);c.font="12px sans-serif";c.fillText(b.room||b.desc,x+w/2,y+h/2+15);c.shadowBlur=0;
+  c.fillStyle="#654936";c.fillRect(x+w/2-17,y+h-13,34,20);
+  c.fillStyle="#fff0c4";c.fillRect(x+w/2-11,y+h-10,22,7);
+  c.strokeStyle="#e8d9ae";c.lineWidth=3;c.beginPath();c.moveTo(x+w/2,y+h+8);c.lineTo(x+w/2,y+h+25);c.stroke();
+  this.label("入口",x+w/2,y+h+38,"#fff",11);
  }
-
  darken(hex){const n=parseInt(hex.slice(1),16),r=Math.max(0,((n>>16)&255)-28),g=Math.max(0,((n>>8)&255)-28),b=Math.max(0,(n&255)-28);return`rgb(${r},${g},${b})`;}
  drawPerson(x,y,shirt,hair,name,isPlayer){const c=this.ctx,p=this.iso(x,y),bob=isPlayer&&Math.sin(this.player.walk*2)>0?1:0;c.fillStyle="#0004";c.beginPath();c.ellipse(p.x,p.y+10,12,7,0,0,Math.PI*2);c.fill();c.fillStyle=shirt;c.beginPath();c.arc(p.x,p.y+2+bob,10,0,Math.PI*2);c.fill();c.fillStyle="#f0c8a5";c.beginPath();c.arc(p.x,p.y-5+bob,7,0,Math.PI*2);c.fill();c.fillStyle=hair;c.beginPath();c.arc(p.x,p.y-7+bob,7,Math.PI,Math.PI*2);c.fill();c.fillStyle="#fff";c.font="11px sans-serif";c.textAlign="center";c.lineWidth=3;c.strokeStyle="#24352c";c.strokeText(name.length>7?name.slice(0,7):name,p.x,p.y-19+bob);c.fillText(name.length>7?name.slice(0,7):name,p.x,p.y-19+bob);if(isPlayer){c.strokeStyle="#f5e6a7";c.lineWidth=2;c.beginPath();c.arc(p.x,p.y,16,0,Math.PI*2);c.stroke();}}
 
