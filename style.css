@@ -34,3 +34,4 @@
  .preview-wrap{min-height:180px}
  .preview-wrap canvas{height:135px}
 }
+#mini-map-canvas{display:block;width:100%;height:auto;image-rendering:pixelated;border-radius:10px}
