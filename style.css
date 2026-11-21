@@ -8,3 +8,6 @@
  #phase2-task{display:none}
  #phase2-task-btn{padding:9px 10px;font-size:10px}
 }
+
+/* TOP-DOWN VIEW */
+#game-canvas{background:#8daf89}
